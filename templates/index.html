@@ -14,14 +14,37 @@
 
         <main>
             <section id="search">
-                <form>
-                    <input type="text" id="username-input" placeholder="Buscar usuário do GitHub...">
+                <form method="POST" action="/">
+                    <input type="text" id="username-input" name="username" placeholder="Buscar usuário do GitHub..." required>
                     <button type="submit">Buscar</button>
                 </form>
             </section>
 
             <section id="profile-display">
-                <p>Busque por um usuário para ver as informações.</p>
+                
+                {% if user %}
+                    <div class="profile-card">
+                        <img src="{{ user.avatar_url }}" alt="Avatar de {{ user.name }}" class="profile-avatar">
+                        <div class="profile-info">
+                            <h2>{{ user.name or user.login }}</h2>
+                            <p class="profile-username"><a href="{{ user.html_url }}" target="_blank">@{{ user.login }}</a></p>
+                            <p class="profile-bio">{{ user.bio or 'Este usuário não possui uma bio.' }}</p>
+                            <div class="profile-stats">
+                                <p><strong>Seguidores:</strong> {{ user.followers }}</p>
+                                <p><strong>Seguindo:</strong> {{ user.following }}</p>
+                                <p><strong>Repositórios:</strong> {{ user.public_repos }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                {% elif error %}
+                    <p class="error-message">{{ error }}</p>
+
+                {% else %}
+                    <p>Busque por um usuário para ver as informações.</p>
+
+                {% endif %}
+
             </section>
         </main>
     </div>
