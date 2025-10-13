@@ -1,34 +1,36 @@
 # app.py
 
-from flask import Flask, render_template, request
+from fastapi import FastAPI, HTTPException
 import requests
 
-app = Flask(__name__)
+# Constante para a URL base da API do GitHub
+GITHUB_API_URL = "https://api.github.com/users/"
 
-@app.route("/", methods=['GET', 'POST'])
-def home():
-    user_data = None
-    error = None
+app = FastAPI()
 
-    if request.method == 'POST':
-        username = request.form.get('username')
-        if username:
-            try:
-                url = f"https://api.github.com/users/{username}"
-                response = requests.get(url)
-                response.raise_for_status()  # Gera um erro para respostas ruins (4xx ou 5xx)
-                
-                user_data = response.json()
+@app.get("/")
+def read_root():
+    return {"message": "Bem-vindo à API do DevFinder"}
 
-            except requests.exceptions.HTTPError as http_err:
-                if response.status_code == 404:
-                    error = f"Usuário '{username}' não encontrado."
-                else:
-                    error = f"Erro na API do GitHub: {http_err}"
-            except Exception as err:
-                error = f"Ocorreu um erro: {err}"
+# Novo endpoint para buscar um usuário
+# {username} é um "path parameter": o valor na URL será passado para a função
+@app.get("/api/v1/search/{username}")
+def search_user(username: str):
+    # O "username: str" é uma type hint, dizendo que esperamos que o username seja uma string
+    try:
+        url = f"{GITHUB_API_URL}{username}"
+        response = requests.get(url)
+        response.raise_for_status()  # Gera um erro para respostas ruins (404, 500, etc.)
+        
+        user_data = response.json()
+        return user_data
 
-    return render_template("index.html", user=user_data, error=error)
-
-if __name__ == "__main__":
-    app.run(debug=True)
+    except requests.exceptions.HTTPError as http_err:
+        # Se o usuário não for encontrado (erro 404), retornamos um erro 404 claro
+        if response.status_code == 404:
+            raise HTTPException(status_code=404, detail=f"Usuário '{username}' não encontrado.")
+        # Para outros erros HTTP, retornamos o erro original
+        raise HTTPException(status_code=response.status_code, detail=str(http_err))
+    except Exception as err:
+        # Para qualquer outro tipo de erro (ex: problema de rede)
+        raise HTTPException(status_code=500, detail=f"Ocorreu um erro inesperado: {err}")
