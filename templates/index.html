@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevFinder</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>DevFinder</h1>
+        </header>
+
+        <main>
+            <section id="search">
+                <form>
+                    <input type="text" id="username-input" placeholder="Buscar usuário do GitHub...">
+                    <button type="submit">Buscar</button>
+                </form>
+            </section>
+
+            <section id="profile-display">
+                <p>Busque por um usuário para ver as informações.</p>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
