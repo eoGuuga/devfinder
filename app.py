@@ -122,8 +122,28 @@ def load_and_index_data():
         print("--- Nenhum perfil foi indexado. ---")
 
 # Configuração do CORS
-frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
-origins = [frontend_url] # Iniciaremos apenas com a URL local
+
+# Nossa URL local de desenvolvimento é sempre permitida
+local_url = "http://localhost:5173"
+
+# A URL de produção será lida da variável de ambiente
+prod_url = os.getenv("FRONTEND_URL") 
+
+# Crie a lista de origens permitidas
+origins = [local_url]
+if prod_url:
+    # Se a variável de produção existir, adicione-a à lista
+    origins.append(prod_url)
+
+print(f"Permitindo conexões CORS de: {origins}")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins, # <-- Agora usamos nossa lista dinâmica
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.add_middleware(
     CORSMiddleware,
