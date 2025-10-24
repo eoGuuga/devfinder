@@ -4,13 +4,9 @@ emoji: 🚀
 colorFrom: blue
 colorTo: green
 sdk: docker
-app_port: 8000
+app_port: 7860 # <-- CORRIGIDO AQUI
 pinned: false
 ---
-
-
-
-
 
 # DevFinder 🚀
 

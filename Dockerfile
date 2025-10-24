@@ -1,23 +1,26 @@
 # Usa uma imagem oficial do Python como base
 FROM python:3.11-slim 
 
+# Cria um usuário não-root por segurança
+RUN useradd -m -u 1000 user
+USER user
+ENV PATH="/home/user/.local/bin:$PATH"
+
 # Define o diretório de trabalho dentro do container
 WORKDIR /app
 
-# Copia o arquivo de requisitos para dentro do container
-COPY requirements.txt requirements.txt
+# Copia o arquivo de requisitos
+COPY --chown=user ./requirements.txt requirements.txt
 
-# Instala as dependências, incluindo Gunicorn (sem cache para garantir versões corretas)
-# E atualiza o pip primeiro
-RUN pip install --upgrade pip && \
+# Instala as dependências (atualiza pip primeiro)
+RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt gunicorn
 
-# Copia todo o resto do código da sua aplicação para dentro do container
-COPY . .
+# Copia o resto do código da aplicação
+COPY --chown=user . /app
 
-# Expõe a porta que o FastAPI/Uvicorn/Gunicorn usará (convenção: 8000)
-EXPOSE 8000
+# Expõe a porta correta que o Hugging Face espera
+EXPOSE 7860
 
-# O comando que será executado quando o container iniciar
-# Usamos Gunicorn com UvicornWorker para rodar o FastAPI em produção
-CMD ["gunicorn", "-w", "1", "-k", "uvicorn.workers.UvicornWorker", "app:app", "--bind", "0.0.0.0:8000"]
+# Comando para iniciar a aplicação na porta correta
+CMD ["gunicorn", "-w", "1", "-k", "uvicorn.workers.UvicornWorker", "app:app", "--bind", "0.0.0.0:7860"]
