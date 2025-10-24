@@ -97,32 +97,47 @@ def neural_search(q: str = Query(..., min_length=3)):
 
 @app.get("/api/v1/user/{username}")
 async def get_user_by_username(username: str):
-    print(f"\nRecebida query de busca direta: '{username}'")
+    print(f"\n[BUSCA DIRETA] Iniciando busca para: '{username}'") # Log 1: Função iniciada
     user_url = f"{GITHUB_API_URL}{username}"
     repos_url = f"{GITHUB_API_URL}{username}/repos?sort=updated&per_page=5"
-    local_headers = headers # Usa os headers definidos globalmente (com ou sem token)
+    local_headers = headers # Usa os headers globais
 
+    print(f"[BUSCA DIRETA] URL do usuário: {user_url}") # Log 2: URL a ser chamada
+    print(f"[BUSCA DIRETA] Usando Headers: {local_headers.get('Authorization', 'Nenhum token encontrado')}") # Log 3: Confirma se o token está nos headers
+
+    user_response = None # Inicializa a variável
     try:
         user_response = requests.get(user_url, headers=local_headers)
-        user_response.raise_for_status()
+        
+        # Log 4: Resposta CRUCIAL da API do GitHub ANTES de qualquer tratamento
+        print(f"[BUSCA DIRETA] Resposta GitHub Status: {user_response.status_code}")
+        # print(f"[BUSCA DIRETA] Resposta GitHub Conteúdo: {user_response.text[:500]}...") # Descomente CUIDADOSAMENTE se precisar ver o corpo
+
+        user_response.raise_for_status() # Lança erro para 4xx/5xx
         user_data = user_response.json()
 
+        print("[BUSCA DIRETA] Buscando repositórios...")
         try:
             repos_response = requests.get(repos_url, headers=local_headers)
+            # Log 5: Status da busca de repositórios
+            print(f"[BUSCA DIRETA] Resposta Repos Status: {repos_response.status_code}")
             repos_response.raise_for_status()
             repos_data = repos_response.json()
             user_data['repositories'] = repos_data
         except requests.exceptions.RequestException as repo_err:
-            print(f"Aviso: Não foi possível buscar repositórios para {username}: {repo_err}")
+            print(f"[BUSCA DIRETA] Aviso: Não foi possível buscar repositórios para {username}: {repo_err}")
             user_data['repositories'] = []
 
-        print(f"-> Retornando dados diretos de '{username}' do GitHub.")
+        print(f"[BUSCA DIRETA] -> Sucesso! Retornando dados de '{username}'.")
         return user_data
 
     except requests.exceptions.HTTPError as http_err:
-        if user_response.status_code == 404:
+        status_code_to_raise = user_response.status_code if user_response is not None else 500
+        print(f"[BUSCA DIRETA] ERRO HTTP: Status {status_code_to_raise} - {http_err}") # Log 6: Erro HTTP
+        if status_code_to_raise == 404:
             raise HTTPException(status_code=404, detail=f"Usuário '{username}' não encontrado no GitHub.")
         else:
-            raise HTTPException(status_code=user_response.status_code, detail=f"Erro na API do GitHub ao buscar usuário: {http_err}")
+            raise HTTPException(status_code=status_code_to_raise, detail=f"Erro na API do GitHub ao buscar usuário: {http_err}")
     except Exception as err:
+        print(f"[BUSCA DIRETA] ERRO Inesperado: {err}") # Log 7: Erro genérico
         raise HTTPException(status_code=500, detail=f"Ocorreu um erro inesperado ao buscar '{username}': {err}")
