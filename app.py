@@ -27,7 +27,7 @@ GITHUB_API_URL = "https://api.github.com/users/"
 # 1. Carregamos o modelo de IA (isso acontece UMA VEZ quando o servidor inicia)
 print("Carregando o modelo de IA (all-MiniLM-L6-v2)...")
 try:
-    model = SentenceTransformer('all-MiniLM-L6-v2')
+    model = SentenceTransformer('paraphrase-MiniLM-L3-v2')
     print("Modelo de IA carregado com sucesso.")
 except Exception as e:
     print(f"ERRO CRÍTICO: Não foi possível carregar o modelo de IA. {e}")
