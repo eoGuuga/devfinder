@@ -1,95 +1,91 @@
----
-title: DevFinder Pro API
-emoji: 🚀
-colorFrom: blue
-colorTo: green
-sdk: docker
-app_port: 7860 # <-- CORRIGIDO AQUI
-pinned: false
----
-
 # DevFinder Pro API 🚀
 
-API de backend para o DevFinder Pro, construída com FastAPI e Python, que fornece funcionalidade de busca semântica para perfis de desenvolvedores do GitHub usando modelos de IA e um banco de dados vetorial.
+High-performance backend API for DevFinder Pro, built with FastAPI (Python). Provides semantic search capabilities for GitHub developer profiles using AI embedding models and the Pinecone vector database.
 
-**[➡️ API Live (Hugging Face)](https://eoGuuga-devfinder-api.hf.space)** | **[➡️ Frontend Live (Render)](https://devfinder-3w8r.onrender.com)**
+**[➡️ Live API (Hugging Face)](https://eoGuuga-devfinder-api.hf.space)** | **[➡️ Live Frontend (Render)](https://devfinder-3w8r.onrender.com)**
 
-## 📖 Sobre
+## 📖 About
 
-Esta API serve como o "cérebro" da aplicação DevFinder Pro. Ela recebe uma query em linguagem natural (ex: "desenvolvedor react de São Paulo com experiência em back-end"), utiliza um modelo de embedding (`sentence-transformers`) para vetorizar a query e consulta um índice vetorial no **Pinecone** para encontrar os perfis de desenvolvedores do GitHub semanticamente mais relevantes.
+This API serves as the intelligent core of the DevFinder Pro application. It exposes endpoints to perform two types of searches:
 
-A arquitetura desacoplada permite que esta API seja consumida por qualquer frontend (atualmente, uma aplicação React hospedada separadamente).
+1.  **Semantic Neural Search (`/api/v1/neural-search`):** Accepts a natural language query (e.g., "senior react developer with fintech experience"), vectorizes it using a Sentence Transformer model, and queries a **Pinecone** vector index to find the most semantically similar GitHub developer profiles previously indexed.
+2.  **Direct Username Lookup (`/api/v1/user/{username}`):** Fetches profile data directly from the GitHub API for a specific username in real-time.
 
----
-
-## ✨ Funcionalidades Principais
-
-- **Busca Neural Semântica:** Endpoint `/api/v1/neural-search` que aceita uma query (`q`) e retorna uma lista de perfis ranqueados por similaridade semântica.
-- **Integração com Pinecone:** Utiliza um índice vetorial hospedado no Pinecone para buscas rápidas e eficientes.
-- **Modelo de Embedding:** Usa o modelo `paraphrase-MiniLM-L3-v2` (via `sentence-transformers`) para gerar embeddings de texto.
-- **Documentação Automática:** Interface Swagger UI disponível em `/docs` para teste interativo da API.
-- **CORS Configurado:** Permite requisições do frontend hospedado.
+This decoupled architecture allows the API to be consumed by any frontend client (currently, a separately hosted React SPA). The primary focus is enabling efficient discovery of relevant developers based on skills and project descriptions, beyond simple keyword matching.
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## ✨ Core Features
+
+- **Hybrid Search:** Offers both semantic (AI-powered) discovery and direct username lookup.
+- **Semantic Neural Search:** Leverages `sentence-transformers` and Pinecone for concept-based profile retrieval.
+- **Pinecone Integration:** Uses a cloud-managed Pinecone index for fast and scalable vector search.
+- **Direct GitHub API Integration:** Fetches real-time data for specific users, including recent repositories.
+- **FastAPI Framework:** Built for high performance, asynchronous capabilities, and automatic data validation.
+- **Automatic API Documentation:** Interactive Swagger UI available at `/docs`.
+- **CORS Configuration:** Allows requests from configured frontend origins (local development and production).
+- **Dockerized:** Containerized for consistent deployment environments (hosted on Hugging Face Spaces).
+
+---
+
+## 🛠️ Tech Stack
 
 - **Python 3.11+**
-- **FastAPI:** Framework web de alta performance para construção da API.
-- **SentenceTransformers:** Biblioteca para gerar embeddings de texto.
-- **Pinecone:** Banco de dados vetorial gerenciado na nuvem para armazenar e buscar embeddings.
-- **Requests:** Para consumir a API do GitHub durante a indexação (offline).
-- **Uvicorn / Gunicorn:** Servidores ASGI/WSGI para rodar a aplicação em desenvolvimento e produção.
-- **Docker:** Para containerizar a aplicação para deploy.
-- **Hugging Face Spaces:** Plataforma de hospedagem para a API containerizada.
-- **Variáveis de Ambiente (`python-dotenv`):** Para gerenciamento seguro de chaves de API.
+- **FastAPI:** High-performance web framework.
+- **SentenceTransformers:** Library for generating text embeddings (`paraphrase-MiniLM-L3-v2`).
+- **Pinecone:** Cloud-managed vector database.
+- **Requests:** For consuming the GitHub API.
+- **Uvicorn / Gunicorn:** ASGI/WSGI servers.
+- **Docker:** Containerization for deployment.
+- **Hugging Face Spaces:** Hosting platform for the containerized API.
+- **Environment Variables (`python-dotenv`):** Secure management of API keys (GitHub, Pinecone).
 
 ---
 
-## 🚀 Como Executar Localmente
+## 🚀 Running Locally
 
-1.  **Clone o repositório:**
+1.  **Clone the repository:**
     ```bash
     git clone [https://github.com/eoGuuga/devfinder.git](https://github.com/eoGuuga/devfinder.git)
     cd devfinder
     ```
-2.  **Crie e ative um ambiente virtual:**
+2.  **Create and activate a virtual environment:**
     ```bash
     python -m venv venv
-    # No Linux/macOS/Git Bash:
+    # On Linux/macOS/Git Bash:
     source venv/bin/activate 
-    # No Windows PowerShell:
+    # On Windows PowerShell:
     .\venv\Scripts\Activate.ps1
     ```
-3.  **Instale as dependências:**
+3.  **Install dependencies:**
     ```bash
     pip install -r requirements.txt
     ```
-4.  **Configure as Variáveis de Ambiente:**
-    * Crie um arquivo `.env` na raiz do projeto.
-    * Adicione as seguintes chaves com seus valores:
+4.  **Configure Environment Variables:**
+    * Create a `.env` file in the project root.
+    * Add the following keys with your actual values:
       ```
-      GITHUB_TOKEN=ghp_SEU_TOKEN_GITHUB
-      PINECONE_API_KEY=SUA_CHAVE_API_PINECONE
-      PINECONE_ENVIRONMENT=SEU_AMBIENTE_PINECONE
-      # FRONTEND_URL=http://localhost:5173 (Opcional, para testes locais do CORS)
+      GITHUB_TOKEN=ghp_YOUR_VALID_GITHUB_TOKEN
+      PINECONE_API_KEY=YOUR_PINECONE_API_KEY
+      PINECONE_ENVIRONMENT=YOUR_PINECONE_ENVIRONMENT 
+      # FRONTEND_URL=http://localhost:5173 (Optional, for local CORS)
       ```
-5.  **Execute o Indexador (Apenas uma vez ou quando quiser atualizar):**
-    * Certifique-se de ter um índice criado no Pinecone com o nome `devfinder-profiles` e dimensão `384`.
+5.  **Run the Indexer (Required only once or to update Pinecone):**
+    * Ensure you have created an index in Pinecone named `devfinder-profiles` (dimension: 384, metric: cosine).
     ```bash
-    python indexer.py
+    python indexer.py 
     ```
-6.  **Inicie o servidor da API:**
+6.  **Start the API server:**
     ```bash
     uvicorn app:app --reload
     ```
-7.  A API estará disponível em `http://127.0.0.1:8000` e a documentação em `http://127.0.0.1:8000/docs`.
+7.  The API will be available at `http://127.0.0.1:8000` and the documentation at `http://127.0.0.1:8000/docs`.
 
 ---
 
-## 👨‍💻 Autor
+## 👨‍💻 Author
 
-Feito com ❤️ por **Gustavo Henrick**.
+Developed with 🐍 by **Gustavo Henrick**.
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/gustavo-henrick-dev20/)
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/eoGuuga)
